@@ -8,9 +8,11 @@ const plans = [
     tag: 'BÁSICO',
     tagline: 'Para começar com força',
     price: 'R$250',
+    monthlyValue: 250,
     period: '/mês',
     annualLabel: 'PLANO ANUAL — 20% OFF',
     annualPrice: 'R$2.400,00',
+    annualValue: 2400,
     items: [
       '3x Criativos semanais (inclui stories e datas comemorativas)',
       '1x Vídeo para redes sociais semanal (reels/shorts/TikTok)',
@@ -24,9 +26,11 @@ const plans = [
     tag: 'PADRÃO',
     tagline: 'IDEAL',
     price: 'R$400',
+    monthlyValue: 400,
     period: '/mês',
     annualLabel: 'PLANO ANUAL — 25% OFF',
     annualPrice: 'R$3.600,00',
+    annualValue: 3600,
     items: [
       '5x Criativos semanais (inclui stories e datas comemorativas)',
       '1x Carrossel semanal',
@@ -42,9 +46,11 @@ const plans = [
     tag: 'PREMIUM',
     tagline: 'Presença total',
     price: 'R$700',
+    monthlyValue: 700,
     period: '/mês',
     annualLabel: 'PLANO ANUAL — 30% OFF',
     annualPrice: 'R$5.880,00',
+    annualValue: 5880,
     items: [
       '10x Criativos semanais (inclui stories e datas comemorativas)',
       '3x Carrosséis semanais',
@@ -61,6 +67,7 @@ const plans = [
 function PlanCard({ plan, delay }) {
   const ref = useRef(null);
   const [hovered, setHovered] = useState(false);
+  const [loading, setLoading] = useState(null); // 'monthly' | 'annual' | null
 
   useEffect(() => {
     const el = ref.current;
@@ -79,6 +86,28 @@ function PlanCard({ plan, delay }) {
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
+
+  async function handleCheckout(billing) {
+    setLoading(billing);
+    try {
+      const price = billing === 'annual' ? plan.annualValue : plan.monthlyValue;
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planName: plan.tag, price, billing }),
+      });
+      const data = await res.json();
+      if (data.init_point) {
+        window.location.href = data.init_point;
+      } else {
+        alert('Erro ao processar pagamento. Tente novamente.');
+      }
+    } catch (err) {
+      alert('Erro ao conectar com o servidor.');
+    } finally {
+      setLoading(null);
+    }
+  }
 
   const isHighlight = plan.highlight;
 
@@ -116,7 +145,6 @@ function PlanCard({ plan, delay }) {
         transition: 'height 0.3s ease',
       }} />
 
-      {/* Glow blob for highlight */}
       {isHighlight && (
         <div style={{
           position: 'absolute',
@@ -128,7 +156,6 @@ function PlanCard({ plan, delay }) {
         }} />
       )}
 
-      {/* Number */}
       <span style={{
         fontFamily: '"Bebas Neue", "Arial Black", sans-serif',
         fontSize: 100,
@@ -143,7 +170,6 @@ function PlanCard({ plan, delay }) {
         {plan.id}
       </span>
 
-      {/* Tag */}
       <div style={{ marginBottom: 8 }}>
         <span style={{
           fontFamily: '"Bebas Neue", "Arial Black", sans-serif',
@@ -178,14 +204,12 @@ function PlanCard({ plan, delay }) {
         {plan.tagline}
       </p>
 
-      {/* Divider */}
       <div style={{
         width: '100%', height: 1,
         background: 'linear-gradient(90deg, #da5931, transparent)',
         marginBottom: 32,
       }} />
 
-      {/* Items */}
       <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', flex: 1 }}>
         {plan.items.map((item, i) => (
           <li key={i} style={{
@@ -199,13 +223,7 @@ function PlanCard({ plan, delay }) {
             lineHeight: 1.6,
             fontWeight: 300,
           }}>
-            <span style={{
-              color: '#da5931',
-              fontSize: 16,
-              marginTop: 2,
-              flexShrink: 0,
-              fontWeight: 700,
-            }}>›</span>
+            <span style={{ color: '#da5931', fontSize: 16, marginTop: 2, flexShrink: 0, fontWeight: 700 }}>›</span>
             {item}
           </li>
         ))}
@@ -250,16 +268,36 @@ function PlanCard({ plan, delay }) {
           fontFamily: "'Segoe UI', sans-serif",
           fontSize: 12,
           color: '#686868',
-          margin: '0 0 20px',
+          margin: '0 0 16px',
           fontWeight: 300,
         }}>
           Pagamento recorrente no pix
         </p>
 
-        <div style={{
-          borderTop: '1px solid #1a1008',
-          paddingTop: 16,
-        }}>
+        {/* Botão mensal */}
+        <button
+          onClick={() => handleCheckout('monthly')}
+          disabled={loading !== null}
+          style={{
+            width: '100%',
+            padding: '14px',
+            background: loading === 'monthly' ? '#3a1a0a' : 'linear-gradient(90deg, #da5931, #fc8141)',
+            border: 'none',
+            borderRadius: 2,
+            color: '#ffffff',
+            fontFamily: '"Bebas Neue", "Arial Black", sans-serif',
+            fontSize: 16,
+            letterSpacing: '0.2em',
+            cursor: loading !== null ? 'not-allowed' : 'pointer',
+            marginBottom: 20,
+            transition: 'opacity 0.3s ease',
+            opacity: loading !== null && loading !== 'monthly' ? 0.4 : 1,
+          }}
+        >
+          {loading === 'monthly' ? 'AGUARDE...' : 'ASSINAR MENSALMENTE'}
+        </button>
+
+        <div style={{ borderTop: '1px solid #1a1008', paddingTop: 16 }}>
           <p style={{
             fontFamily: '"Bebas Neue", "Arial Black", sans-serif',
             fontSize: 11,
@@ -282,11 +320,33 @@ function PlanCard({ plan, delay }) {
             fontFamily: "'Segoe UI', sans-serif",
             fontSize: 11,
             color: '#686868',
-            margin: '4px 0 0',
+            margin: '4px 0 16px',
             fontWeight: 300,
           }}>
             À vista no pix ou 12x no cartão
           </p>
+
+          {/* Botão anual */}
+          <button
+            onClick={() => handleCheckout('annual')}
+            disabled={loading !== null}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: 'transparent',
+              border: '1px solid #da5931',
+              borderRadius: 2,
+              color: '#da5931',
+              fontFamily: '"Bebas Neue", "Arial Black", sans-serif',
+              fontSize: 16,
+              letterSpacing: '0.2em',
+              cursor: loading !== null ? 'not-allowed' : 'pointer',
+              transition: 'all 0.3s ease',
+              opacity: loading !== null && loading !== 'annual' ? 0.4 : 1,
+            }}
+          >
+            {loading === 'annual' ? 'AGUARDE...' : 'ASSINAR ANUALMENTE'}
+          </button>
         </div>
       </div>
     </div>
@@ -321,7 +381,6 @@ function Services() {
       position: 'relative',
       overflow: 'hidden',
     }}>
-      {/* Ambient glow */}
       <div style={{
         position: 'absolute', top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
@@ -331,8 +390,6 @@ function Services() {
       }} />
 
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 40px' }}>
-
-        {/* Header */}
         <div
           ref={headerRef}
           style={{
@@ -390,7 +447,6 @@ function Services() {
           </div>
         </div>
 
-        {/* Cards Grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
@@ -402,7 +458,6 @@ function Services() {
           ))}
         </div>
 
-        {/* Bottom note */}
         <div style={{
           marginTop: 64,
           paddingTop: 32,
@@ -414,12 +469,7 @@ function Services() {
           gap: 16,
           fontFamily: "'Segoe UI', sans-serif",
         }}>
-          <p style={{
-            fontSize: 13,
-            color: '#686868',
-            margin: 0,
-            fontWeight: 300,
-          }}>
+          <p style={{ fontSize: 13, color: '#686868', margin: 0, fontWeight: 300 }}>
             Planos personalizados disponíveis mediante consulta.
           </p>
           <p style={{
@@ -432,7 +482,6 @@ function Services() {
             AORON · VIDEO & MARKETING
           </p>
         </div>
-
       </div>
     </section>
   );

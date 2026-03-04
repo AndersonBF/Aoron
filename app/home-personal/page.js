@@ -18,6 +18,7 @@ import About from '@/components/home-personal/About';
 import Services from '@/components/home-personal/Services';
 import Skills from '@/components/home-personal/Skills';
 import Portfolio from '@/components/home-personal/Portfolio';
+import AboutMe from '@/components/home-personal/AboutMe';
 
 export const metadata = {
   title: 'webfolio',
@@ -47,6 +48,7 @@ export default function Home() {
             <Header />
            {/* <Marq /> */}
             <About />
+            <AboutMe />
             <Services />
             <Portfolio />
             <Skills />
@@ -93,13 +95,6 @@ export default function Home() {
         strategy="beforeInteractive"
         src="/assets/js/isotope.pkgd.min.js"
       ></Script>
-      <Script
-        strategy="beforeInteractive"
-        src="/assets/js/imgReveal/imagesloaded.pkgd.min.js"
-      ></Script>
-
-      {/* <Script src="/assets/js/smoother-script.js" strategy="lazyOnload" /> */}
-
       <Script src="/assets/js/scripts.js"></Script>
     </body>
   );

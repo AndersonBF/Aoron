@@ -1,22 +1,27 @@
 'use client';
-import React, { useLayoutEffect } from 'react';
+import React, { useLayoutEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 
 function Header() {
+  const headerRef = useRef(null);
+  const imgRef = useRef(null);
+
   useLayoutEffect(() => {
+    if (!headerRef.current || !imgRef.current) return;
     const tl = gsap.timeline();
-    tl.fromTo('.header', { y: 200 }, { y: 0 }, '+=2.5');
+    tl.fromTo(headerRef.current, { y: 200 }, { y: 0, duration: 1.2, ease: 'power3.out' }, '+=0.5');
     tl.fromTo(
-      '.header .container',
-      { opacity: 0, translateY: 40 },
-      { opacity: 1, translateY: 0 },
-      '-=0'
+      imgRef.current,
+      { opacity: 0, y: 40 },
+      { opacity: 1, y: 0, duration: 1, ease: 'power3.out' },
+      '-=0.4'
     );
     return () => tl.kill();
   }, []);
 
   return (
     <div
+      ref={headerRef}
       className="header header-personal"
       style={{
         minHeight: '100vh',
@@ -32,6 +37,7 @@ function Header() {
       }}
     >
       <img
+        ref={imgRef}
         src="/aoron.png"
         alt="Aoron"
         style={{

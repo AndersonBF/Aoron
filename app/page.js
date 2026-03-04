@@ -18,6 +18,7 @@ import About from '@/components/home-personal/About';
 import Services from '@/components/home-personal/Services';
 import Skills from '@/components/home-personal/Skills';
 import Portfolio from '@/components/home-personal/Portfolio';
+import AboutMe from '@/components/home-personal/AboutMe';
 
 export const metadata = {
   title: 'webfolio',
@@ -45,6 +46,7 @@ export default function Home() {
         <div id="smooth-content">
           <main className="main-bg o-hidden">
             <Header />
+            <AboutMe />
            {/* <Marq /> */}
             <About />
             <Services />
